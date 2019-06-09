@@ -1,0 +1,6 @@
+
+
+--track0:ƒŒƒCƒ„[”Ô†, 1,100,1,1
+
+obj.load("layer",obj.track0)
+--obj.draw()

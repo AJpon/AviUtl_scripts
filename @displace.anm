@@ -1,0 +1,102 @@
+
+------------------------------------------------------------
+@Main
+------------------------------------------------------------
+--track0:量, -1000.0,1000.0,50.0
+--track1:サイズ, 2.0,100.0,100.0
+--track2:複雑度, 1.0,10.0,1.0
+--track3:展開, 0,5000,0,1
+--check0:自動的にクリッピング,1
+--dialog:変形[0-2], local mode=0; 展開速度, local speed=0; 領域拡張を使う/chk, local extension=1; 画像ループを使う(α)/chk, local loop=0; 穴を埋める(β)/chk, local fill=0; 輝度マップを表示/chk, local map=0;
+
+local amount = obj.track0
+local size = 100.0 - obj.track1
+local comp = 50-(5*obj.track2)
+local evol = obj.track3
+local w,h = obj.getpixel()
+
+debug_print("start")
+if (mode  < 0 or mode > 2) then
+	mode = 0
+end
+
+if (extension == 1 and loop == 0) then
+	obj.effect("領域拡張","塗りつぶし",1,"上",math.abs(amount),"下",math.abs(amount),"左",math.abs(amount),"右",math.abs(amount))
+elseif (loop == 1) then
+	obj.copybuffer("tmp","obj")
+	obj.load("tempbuffer")
+	obj.draw()
+	obj.load("tempbuffer")
+	obj.effect("反転","左右反転",1)
+	obj.draw(w)
+	obj.draw(-w)
+	obj.load("tempbuffer")
+	obj.effect("反転","上下反転",1)
+	obj.draw(0,h)
+	obj.draw(0,-h)
+	obj.load("tempbuffer")
+	obj.effect("反転","左右反転",1,"上下反転",1)
+	obj.draw(w,h)
+	obj.draw(w,-h)
+	obj.draw(-w,h)
+	obj.draw(-w,-h)
+	if (obj.check0) then
+		obj.effect("クリッピング","上",math.abs(amount),"下",math.abs(amount),"左",math.abs(amount),"右",math.abs(amount))
+	end
+end
+
+obj.copybuffer("cache:original","obj")
+	obj.setoption("drawtarget","tempbuffer",w,h)
+
+--[[
+	obj.load("figure","四角形",0xffffff,math.max(w,h))
+	obj.effect("ノイズ","周期X",size,"周期Y",size,"type",0,"mode",1,"seed",evol,"変化速度",speed)
+	obj.setoption("blend",5)
+	obj.draw()
+	obj.setoption("drawtarget","tempbuffer") 
+]]
+
+	obj.load("figure","四角形",0xffffff,math.max(w,h))
+	obj.effect("ノイズ","周期X",size,"周期Y",size,"type",0,"mode",1,"seed",evol+100,"変化速度",speed)
+	obj.draw()
+--	obj.setoption("blend",0)
+
+if (map == 0) then
+	obj.copybuffer("obj","cache:original")
+	obj.effect("ディスプレイスメントマップ","type",0,"name","*tempbuffer","元のサイズに合わせる",1,"param0",amount,"param1",amount,"ぼかし",comp,"calc",mode)
+	
+	if (fill == 1) then
+		--debug_print("start fill")
+		obj.copybuffer("cache:temp0","obj")
+		obj.copybuffer("cache:oritmp","tmp")
+		obj.load("tempbuffer")
+		obj.effect("反転","輝度反転",1)
+		obj.draw()
+		obj.copybuffer("cache:temp1","obj")
+		obj.copybuffer("tmp","cache:temp1")
+		obj.copybuffer("obj","cache:original")
+		obj.effect("ディスプレイスメントマップ","type",0,"name","*tempbuffer","元のサイズに合わせる",1,"param0",amount,"param1",amount,"ぼかし",comp,"calc",mode)
+		obj.copybuffer("cache:temp1","obj")
+		obj.setoption("drawtarget","framebuffer")
+		obj.copybuffer("tmp","cache:temp1")
+		obj.setoption("blend",0)
+		obj.load("tempbuffer")
+		obj.draw()
+		obj.copybuffer("obj","cache:temp0")	
+		obj.setoption("drawtarget","framebuffer")
+		obj.draw()
+		obj.copybuffer("tmp","cache:oritmp")
+	elseif (obj.check0 and extension == 1) then
+		obj.effect("クリッピング","上",math.abs(amount),"下",math.abs(amount),"左",math.abs(amount),"右",math.abs(amount))
+	end
+else
+	obj.load("tempbuffer")
+end
+
+------------------------------------------------------------
+@Options
+------------------------------------------------------------
+--track0:X/オフセット, -1000.0,1000.0,50.0
+--track1:Y/オフセット, 2.0,5000.0,100.0
+--track2:
+--track3:
