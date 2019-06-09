@@ -6,8 +6,8 @@
 --track1:サイズ, 2.0,100.0,100.0
 --track2:複雑度, 1.0,10.0,1.0
 --track3:展開, 0,5000,0,1
---check0:自動的にクリッピング,1
---dialog:変形[0-2], local mode=0; 展開速度, local speed=0; 領域拡張を使う/chk, local extension=1; 画像ループを使う(α)/chk, local loop=0; 穴を埋める(β)/chk, local fill=0; 輝度マップを表示/chk, local map=0;
+--check0:領域拡張を使う,1
+--dialog:変形[0-2], local mode=0; 展開速度, local speed=0; 自動クリッピング/chk, local clip=1; 画像ループを使う(α)/chk, local loop=0; 穴を埋める(β)/chk, local fill=0; 輝度マップを表示/chk, local map=0;
 
 local amount = obj.track0
 local size = 100.0 - obj.track1
@@ -20,7 +20,7 @@ if (mode  < 0 or mode > 2) then
 	mode = 0
 end
 
-if (extension == 1 and loop == 0) then
+if (obj.check0 and loop == 0) then
 	obj.effect("領域拡張","塗りつぶし",1,"上",math.abs(amount),"下",math.abs(amount),"左",math.abs(amount),"右",math.abs(amount))
 elseif (loop == 1) then
 	obj.copybuffer("tmp","obj")
@@ -40,7 +40,7 @@ elseif (loop == 1) then
 	obj.draw(w,-h)
 	obj.draw(-w,h)
 	obj.draw(-w,-h)
-	if (obj.check0) then
+	if (clip == 1) then
 		obj.effect("クリッピング","上",math.abs(amount),"下",math.abs(amount),"左",math.abs(amount),"右",math.abs(amount))
 	end
 end
@@ -86,7 +86,7 @@ if (map == 0) then
 		obj.setoption("drawtarget","framebuffer")
 		obj.draw()
 		obj.copybuffer("tmp","cache:oritmp")
-	elseif (obj.check0 and extension == 1) then
+	elseif (clip == 1 and obj.check0) then
 		obj.effect("クリッピング","上",math.abs(amount),"下",math.abs(amount),"左",math.abs(amount),"右",math.abs(amount))
 	end
 else
