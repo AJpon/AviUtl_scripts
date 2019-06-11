@@ -7,7 +7,7 @@
 --track2:複雑度, 1.0,10.0,1.0
 --track3:展開, 0,5000,0,1
 --check0:領域拡張を使う,1
---dialog:変形[0-2], local mode=0; 展開速度, local speed=0; 自動クリッピング/chk, local clip=1; 画像ループを使う(α)/chk, local loop=0; 穴を埋める(β)/chk, local fill=0; 輝度マップを表示/chk, local map=0;
+--dialog:変形[0-2], local mode=0; 展開速度, local speed=0; 自動クリッピング/chk, local clip=1; 画像ループを使う(β)/chk, local loop=0; 穴を埋める(β)/chk, local fill=0; 精度[0-4](β), local preview=0; 輝度マップを表示/chk, local map=0; 
 
 local amount = obj.track0
 local size = 100.0 - obj.track1
@@ -20,32 +20,44 @@ if (mode  < 0 or mode > 2) then
 	mode = 0
 end
 
+if (preview > 0 and preview <5) then
+	debug_print("test preview1")
+	obj.effect("リサイズ","拡大率",100/(preview+1),"補間なし",1)
+	--obj.effect("拡大率","拡大率",preview+1)
+	--obj.effect("リサイズ","拡大率",100*(preview+1),"補間なし",1)
+	w = math.floor( w/(preview+1) )
+	h = math.floor( h/(preview+1) )
+end
+
 if (obj.check0 and loop == 0) then
 	obj.effect("領域拡張","塗りつぶし",1,"上",math.abs(amount),"下",math.abs(amount),"左",math.abs(amount),"右",math.abs(amount))
 elseif (loop == 1) then
-	obj.copybuffer("tmp","obj")
-	obj.load("tempbuffer")
+	--obj.copybuffer("tmp","obj")
+	obj.setoption("drawtarget","tempbuffer",3*w,3*h)
+	obj.load("layer",2)
 	obj.draw()
-	obj.load("tempbuffer")
+	obj.setoption("drawtarget","tempbuffer")
+	obj.load("layer",2)
 	obj.effect("反転","左右反転",1)
 	obj.draw(w)
 	obj.draw(-w)
-	obj.load("tempbuffer")
+	obj.load("layer",2)
 	obj.effect("反転","上下反転",1)
-	obj.draw(0,h)
-	obj.draw(0,-h)
-	obj.load("tempbuffer")
-	obj.effect("反転","左右反転",1,"上下反転",1)
 	obj.draw(w,h)
 	obj.draw(w,-h)
 	obj.draw(-w,h)
 	obj.draw(-w,-h)
-	if (clip == 1) then
-		obj.effect("クリッピング","上",math.abs(amount),"下",math.abs(amount),"左",math.abs(amount),"右",math.abs(amount))
-	end
+	obj.load("layer",2)
+	obj.effect("反転","左右反転",1)
+	obj.draw(0,h)
+	obj.draw(0,-h)
+	obj.setoption("drawtarget","framebuffer")
+	obj.load("tempbuffer")
 end
 
+
 obj.copybuffer("cache:original","obj")
+
 	obj.setoption("drawtarget","tempbuffer",w,h)
 
 --[[
@@ -86,8 +98,17 @@ if (map == 0) then
 		obj.setoption("drawtarget","framebuffer")
 		obj.draw()
 		obj.copybuffer("tmp","cache:oritmp")
-	elseif (clip == 1 and obj.check0) then
+	elseif (clip == 1 and obj.check0 and loop == 0) then
 		obj.effect("クリッピング","上",math.abs(amount),"下",math.abs(amount),"左",math.abs(amount),"右",math.abs(amount))
+	elseif (clip == 1 and loop == 1) then
+		obj.effect("クリッピング","上",h,"下",h,"左",w,"右",w)
+	end
+	if (preview > 0 and preview <5) then
+		debug_print("test preview2")
+		obj.effect("拡大率","拡大率",100*(preview+1))
+		--obj.effect("リサイズ","拡大率",100*(preview+1),"補間なし",1)
+		--w = math.ceil( w/(preview+1) )
+		--h = math.ceil( h/(preview+1) )
 	end
 else
 	obj.load("tempbuffer")
@@ -100,3 +121,4 @@ end
 --track1:Y/オフセット, 2.0,5000.0,100.0
 --track2:
 --track3:
+----dialog:輝度マップを表示/chk, local map=0;
