@@ -1,6 +1,6 @@
 
 ------------------------------------------------------------
-@Main
+@Turbulent
 ------------------------------------------------------------
 --track0:量, -1000.0,1000.0,50.0
 --track1:サイズ, 2.0,100.0,100.0
@@ -60,6 +60,7 @@ obj.copybuffer("cache:original","obj")
 
 --[[
 	obj.load("figure","四角形",0xffffff,math.max(w,h))
+	obj.effect("ノイズ","周期X",size,"周期Y",size,"type",0,"mode",1,"seed",evol,"変化速度",speed)
 	obj.effect("ノイズ","周期X",size,"周期Y",size,"type",0,"mode",1,"seed",evol,"変化速度",speed)
 	obj.setoption("blend",5)
 	obj.draw()
@@ -121,6 +122,32 @@ if (preview > 0 and preview <5) then
 	obj.effect("拡大率","拡大率",100*(preview+1))
 	obj.draw()
 end
+obj.setoption("drawtarget","framebuffer")
+
+------------------------------------------------------------
+@DisplacementMap
+------------------------------------------------------------
+--track0:X/オフセット, -1000.0,1000.0,50.0
+--track1:Y/オフセット, 2.0,5000.0,100.0
+--track2:
+--track3:
+----dialog:輝度マップを表示/chk, local map=0;
+obj.setfont("游ゴシック Light",96,4,0xffffff,0x101010)
+obj.load(この機能は未実装です/nDisplacementMap@Displace)
+obj.setoption("drawtarget","framebuffer")
+
+------------------------------------------------------------
+@DisplacementMap(簡易)
+------------------------------------------------------------
+--track0:X/オフセット, -1000.0,1000.0,50.0
+--track1:Y/オフセット, 2.0,5000.0,100.0
+--track2:
+--track3:
+----dialog:輝度マップを表示/chk, local map=0;
+obj.setfont("游ゴシック Light",96,4,0xffffff,0x101010)
+obj.load(この機能は未実装です/nDisplacementMap(簡易)@Displace)
+obj.setoption("drawtarget","framebuffer")
+
 ------------------------------------------------------------
 @Options
 ------------------------------------------------------------
@@ -129,3 +156,6 @@ end
 --track2:
 --track3:
 ----dialog:輝度マップを表示/chk, local map=0;
+obj.setfont("游ゴシック Light",96,4,0xffffff,0x101010)
+obj.load(この機能は未実装です/nOptions@Displace)
+obj.setoption("drawtarget","framebuffer")
