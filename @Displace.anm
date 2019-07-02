@@ -71,9 +71,7 @@ obj.copybuffer("cache:original","obj")
 		obj.load("figure","ŽlŠpŒ`",0xffffff,(preview+1)*math.max(w,h))
 		obj.effect("ƒmƒCƒY","ŽüŠúX",size,"ŽüŠúY",size,"type",0,"mode",1,"seed",evol+100,"•Ï‰»‘¬“x",speed)
 		obj.effect("ƒŠƒTƒCƒY","Šg‘å—¦",100/(preview+1),"•âŠÔ‚È‚µ",1)
-		if (fill ~= 1) then 
-			amount=amount/(preview+1)
-		end
+		amount=amount/(preview+1)
 	else
 		obj.load("figure","ŽlŠpŒ`",0xffffff,math.max(w,h))
 		obj.effect("ƒmƒCƒY","ŽüŠúX",size,"ŽüŠúY",size,"type",0,"mode",1,"seed",evol+100,"•Ï‰»‘¬“x",speed)
@@ -123,7 +121,7 @@ else
 	obj.load("tempbuffer")
 end
 
-if (preview > 0 and preview <5 and fill ~= 1) then
+if (preview > 0 and preview <5 and fill == 0) then
 	debug_print("test preview2")
 	obj.effect("Šg‘å—¦","Šg‘å—¦",100*(preview+1))
 	obj.draw()
