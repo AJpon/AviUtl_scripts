@@ -9,11 +9,13 @@
 --check0:領域拡張を使う,1
 --dialog:変形[0-2], local mode=0; 展開速度, local speed=0.0; 自動クリッピング/chk, local clip=1; 画像ループを使う(β)/chk, local loop=0; 穴を埋める(β)/chk, local fill=0; 精度[0-4](β), local preview=0; 輝度マップを表示/chk, local map=0; 
 
-local amount = obj.track0
-local size = 100.0 - obj.track1
-local comp = 50-(5*obj.track2)
-local evol = obj.track3
-local w,h = obj.getpixel()
+local amount = obj.track0			--ディスプレイスメントをかける量
+local size = 100.0 - obj.track1		--ノイズのサイズ
+local comp = 50-(5*obj.track2)		--ノイズのぼかし量
+local evol = obj.track3				--ノイズのシード値 (AEで言う展開度に相当させるつもりだったが挙動がかなり違うので削除する可能性あり)
+local w,h = obj.getpixel()			--オブジェクトの縦横
+
+local lightMode = obj.getinfo("saving") == false and preview > 0 and preview <5
 
 debug_print("start")
 if (mode  < 0 or mode > 2) then
@@ -46,8 +48,8 @@ elseif (loop == 1) then
 	obj.load("tempbuffer")
 end
 
-if (obj.getinfo("saving") == false and preview > 0 and preview <5) then
-	debug_print("test preview1")
+if (lightMode) then
+	--debug_print("test preview1")
 	obj.effect("リサイズ","拡大率",100/(preview+1),"補間なし",1)
 	--obj.effect("拡大率","拡大率",100/(preview+1))
 	w = math.floor( w/(preview+1) )
@@ -67,11 +69,15 @@ obj.copybuffer("cache:original","obj")
 	obj.setoption("drawtarget","tempbuffer") 
 ]]
 
-	if (obj.getinfo("saving") == false and preview > 0 and preview <5) then
+	if (lightMode) then
 		obj.load("figure","四角形",0xffffff,(preview+1)*math.max(w,h))
 		obj.effect("ノイズ","周期X",size,"周期Y",size,"type",0,"mode",1,"seed",evol+100,"変化速度",speed)
 		obj.effect("リサイズ","拡大率",100/(preview+1),"補間なし",1)
-		amount=amount/(preview+1)
+
+		--移動変形時のみエフェクトがかかりすぎてしまうため、ここでパラメーターを調整
+		if(mode==0) then
+			amount=amount/(preview+1)
+		end
 		comp=comp/(preview+1)
 	else
 		obj.load("figure","四角形",0xffffff,math.max(w,h))
@@ -83,7 +89,17 @@ obj.copybuffer("cache:original","obj")
 if (map == 0) then
 	obj.copybuffer("obj","cache:original")
 	obj.effect("ディスプレイスメントマップ","type",0,"name","*tempbuffer","元のサイズに合わせる",1,"param0",amount,"param1",amount,"ぼかし",comp,"calc",mode)
-	
+	local clipAmount = amount
+	if (clip == 1 and obj.check0 and loop == 0) then
+		--debug_print("ext clip")
+		if (lightMode and mode ~= 0) then
+			clipAmount=amount/(preview+1)
+		end
+		obj.effect("クリッピング","上",math.abs(clipAmount),"下",math.abs(clipAmount),"左",math.abs(clipAmount),"右",math.abs(clipAmount))
+	elseif (clip == 1 and loop == 1) then
+		--debug_print("loop clip")
+		obj.effect("クリッピング","上",h,"下",h,"左",w,"右",w)
+	end
 	if (fill == 1) then
 		--debug_print("start fill")
 		obj.copybuffer("cache:temp0","obj")
@@ -95,38 +111,37 @@ if (map == 0) then
 		obj.copybuffer("tmp","obj")
 		obj.copybuffer("obj","cache:original")
 		obj.effect("ディスプレイスメントマップ","type",0,"name","*tempbuffer","元のサイズに合わせる",1,"param0",amount,"param1",amount,"ぼかし",comp,"calc",mode)
+		if (clip == 1 and obj.check0 and loop == 0) then
+			obj.effect("クリッピング","上",math.abs(clipAmount),"下",math.abs(clipAmount),"左",math.abs(clipAmount),"右",math.abs(clipAmount))
+		elseif (clip == 1 and loop == 1) then
+			obj.effect("クリッピング","上",h,"下",h,"左",w,"右",w)
+		end
 		obj.copybuffer("cache:temp1","obj")
 		obj.setoption("drawtarget","framebuffer")
 		obj.copybuffer("tmp","cache:temp1")
 		obj.setoption("blend",0)
 		obj.load("tempbuffer")
-		if (preview > 0 and preview <5) then
+		if (lightMode) then
+			--obj.effect("リサイズ","拡大率",100*(preview+1),"補間なし",1)
 			obj.effect("拡大率","拡大率",100*(preview+1))
 		end
+		obj.effect()
 		obj.draw()
 		obj.copybuffer("obj","cache:temp0")	
-		obj.setoption("drawtarget","framebuffer")
+		--obj.setoption("drawtarget","framebuffer")
+		obj.effect()
 		obj.draw()
 		obj.copybuffer("tmp","cache:oritmp")
-	end
-	if (clip == 1 and obj.check0 and loop == 0) then
-		debug_print("ext clip")
-		obj.effect("クリッピング","上",math.abs(amount),"下",math.abs(amount),"左",math.abs(amount),"右",math.abs(amount))
-		obj.draw()
-	elseif (clip == 1 and loop == 1) then
-		debug_print("loop clip")
-		obj.effect("クリッピング","上",h,"下",h,"左",w,"右",w)
-		obj.draw()
 	end
 else
 	obj.load("tempbuffer")
 end
 
-if (obj.getinfo("saving") == false and preview > 0 and preview <5 and fill == 0) then
-	debug_print("test preview2")
+if (lightMode and fill == 0) then
+	--debug_print("test preview2")
 	obj.effect("リサイズ","拡大率",100*(preview+1),"補間なし",1)
 	--obj.effect("拡大率","拡大率",100*(preview+1))
-	obj.draw()
+	--obj.draw()
 end
 obj.setoption("drawtarget","framebuffer")
 
