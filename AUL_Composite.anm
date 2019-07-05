@@ -1,10 +1,11 @@
---track0:Blend ,0,12,1,0
---track1:x ,-2000,2000,0.1,0
---track2:y ,-2000,2000,0.1,0
---tarck3:zoom ,0,1000,0.01,100
+--track0:Blend ,0,12,0,1
+--track1:x ,-2000,2000,0,0.1
+--track2:y ,-2000,2000,0,0.1
+--tarck3:alpha ,0,100,0,0.1
 
+debug_print(obj.track0)
 obj.draw()
 obj.setoption("blend",obj.tarck0,"force")
 obj.load("layer",obj.layer)
-obj.draw(obj.track1,obj.track2,0,obj.tarck3/100)
+obj.draw(obj.track1,obj.track2,0,1,(100-obj.tarck3)/100)
 obj.setoption("drawtarget","framebuffer")
