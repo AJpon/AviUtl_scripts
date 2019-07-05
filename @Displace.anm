@@ -17,7 +17,7 @@ local w,h = obj.getpixel()			--オブジェクトの縦横
 
 local lightMode = obj.getinfo("saving") == false and preview > 0 and preview <5
 
-debug_print("start")
+--debug_print("start")
 if (mode  < 0 or mode > 2) then
 	mode = 0
 end
