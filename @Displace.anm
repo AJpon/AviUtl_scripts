@@ -1,3 +1,85 @@
+--[[
+----@Displace ver0.1--------//// by pon
+　ディスプレイスメント系のエフェクトをまとめたスクリプト(になる予定)です。
+β版として配布します。今のところ Turbulent のみの実装です。他の機能は後々追加していきます。
+完全に自分用なので使いにくいところが多々あると思いますががご了承ください。
+ご意見、疑問点、バグ報告などがあればtwitterまでお願いします。
+
+twitter: @takatakaponta
+
+●Turbulent
+	　オブジェクトの見た目をランダムに歪ませるエフェクトです。AfterEffectsのタービュレントディスプレイスの模倣です。
+	できるだけオリジナルのタービュレントディスプレイスと近い操作感で使えるようにしてますが完全再現はできてません。
+	挙動もかなり異なります。β版です。
+
+	○トラックバー/チェックボックス
+		◇量
+			変形度合いの設定です。値を上げるとより強く歪みます。
+
+		◇サイズ
+			元となるノイズの周期を設定します。値を上げると大雑把に、
+			下げると細かくゆがみます。
+
+		◇複雑度
+			値を上げると複雑に、下げると滑らかに歪みます。
+
+		◇展開
+			シード値の設定です。Aeのパラメーターに名前を寄せようとしましたが
+			展開とシード値では大分意味が変わるので後々改名予定です。
+
+		◆領域拡張を使う
+			エフェクトを強くかけすぎるとオブジェクトに穴が開いてしまうので
+			それを緩和するためのオプションです。エッジピクセルが透明の場合うまく動作しません。
+			また、後述する "画像ループを使用" にチェックを入れると自動的に無効化されます。
+			画像ループを利用するよりも軽い処理で済みます。
+			主に画像、映像ファイル用です。
+
+
+	○ダイアログ設定
+		◇変形
+			変形方式を指定します。ディスプレイスメントマップの移動方法と意味は同じです。
+			設定できる値は0~2です。0~2以外が入力された場合移動変形になります。
+			0=移動変形, 1=拡大変形, 2=回転変形
+
+		◇展開速度
+			歪み方を時間とともに変化させます。値を上げると変化速度が上がります。
+			0にすることで歪み方を固定できます。
+
+		◇自動クリッピング
+			このスクリプトのオプションである領域拡張、画像ループを利用した場合画像領域が広がってしまうため
+			それを改善するオプションです。元のオブジェクトと同じサイズまでクリッピングを行います。
+
+		◇画像ループを使う
+			エフェクトを強くかけすぎるとオブジェクトに穴が開いてしまうので
+			それを緩和するためのオプションです。こちらを有効化すると領域拡張は自動的に無効化されます。
+			領域拡張に比べて自然に処理できますが画像サイズが大きくなると非常に重くなります。
+
+
+		◇穴を埋める
+			エフェクトを強くかけすぎるとオブジェクトに穴が開いてしまうので
+			それを緩和するためのオプションです。領域拡張や画像ループとは違うアプローチで穴をふさいでいます。
+			変形方法が移動変形の時に大きな効果を発揮します。拡大変形でも多少の効果が見込めますが回転変形時はほとんど役に立たないでしょう。
+			非常に重いです。また、このオプションを使うと他のエフェクトがうまくかからなくなることがあります。
+			こちらは領域拡張や画像ループとも併用できますので、これらだけでは穴をふさぎきれないときだけお使いください。
+
+		◇精度
+			オブジェクトの画質を事前に下げてから処理することで軽量化を行います。これによって多重がけ時等のプレビュー速度を改善します。
+			レンダリング時には自動的に最高品質でレンダリングされるため、レンダリング前に設定を0に戻すといった作業は必要ありません。
+			ここで言うレンダリングというのはおおぶ氏の拡張RAMプレビューの出力なども含みます。
+			設定値は0~4です。
+			0=オリジナル解像度, 1=1/2解像度, 2=1/3解像度 3=1/4解像度, 4=1/4解像度
+
+		◇輝度マップを表示
+			ディスプレイスメントに使用した輝度マップを表示します。
+
+
+【更新履歴】
+	
+		[2019/7/19] ver0.1(β)
+		初版
+		Turbulent のみ
+			
+]]
 
 ------------------------------------------------------------
 @Turbulent
@@ -26,6 +108,7 @@ if (obj.check0 and loop == 0 and map == 0) then
 	obj.effect("領域拡張","塗りつぶし",1,"上",math.abs(amount),"下",math.abs(amount),"左",math.abs(amount),"右",math.abs(amount))
 elseif (loop == 1) then
 	--obj.copybuffer("tmp","obj")
+	--[[
 	obj.setoption("drawtarget","tempbuffer",3*w,3*h)
 	obj.load("layer",obj.layer)
 	obj.draw()
@@ -46,6 +129,33 @@ elseif (loop == 1) then
 	obj.draw(-w,-h)
 	obj.setoption("drawtarget","framebuffer")
 	obj.load("tempbuffer")
+	]]
+	obj.setoption("drawtarget","tempbuffer",3*w,3*h)
+	obj.copybuffer("cache:TDoriginal","obj")
+	obj.load("figure","円",0x000000,1)
+	obj.copybuffer("obj","cache:TDoriginal")
+	obj.draw()
+	obj.setoption("drawtarget","tempbuffer")
+	obj.load("figure","円",0x000000,1)
+	obj.copybuffer("obj","cache:TDoriginal")
+	obj.effect("反転","左右反転",1)
+	obj.draw(w)
+	obj.draw(-w)
+	obj.load("figure","円",0x000000,1)
+	obj.copybuffer("obj","cache:TDoriginal")
+	obj.effect("反転","上下反転",1)
+	obj.draw(0,h)
+	obj.draw(0,-h)
+	obj.load("figure","円",0x000000,1)
+	obj.copybuffer("obj","cache:TDoriginal")
+	obj.effect("反転","左右反転",1,"上下反転",1)
+	obj.draw(w,h)
+	obj.draw(w,-h)
+	obj.draw(-w,h)
+	obj.draw(-w,-h)
+	obj.setoption("drawtarget","framebuffer")
+	obj.load("tempbuffer")
+	
 end
 
 if (lightMode) then
@@ -56,18 +166,9 @@ if (lightMode) then
 	h = math.floor( h/(preview+1) )
 end
 
-obj.copybuffer("cache:original","obj")
+obj.copybuffer("cache:TDoriginal","obj")
 
 	obj.setoption("drawtarget","tempbuffer",w,h)
-
---[[
-	obj.load("figure","四角形",0xffffff,math.max(w,h))
-	obj.effect("ノイズ","周期X",size,"周期Y",size,"type",0,"mode",1,"seed",evol,"変化速度",speed)
-	obj.effect("ノイズ","周期X",size,"周期Y",size,"type",0,"mode",1,"seed",evol,"変化速度",speed)
-	obj.setoption("blend",5)
-	obj.draw()
-	obj.setoption("drawtarget","tempbuffer") 
-]]
 
 	if (lightMode) then
 		obj.load("figure","四角形",0xffffff,(preview+1)*math.max(w,h))
@@ -84,11 +185,15 @@ obj.copybuffer("cache:original","obj")
 		obj.effect("ノイズ","周期X",size,"周期Y",size,"type",0,"mode",1,"seed",evol+100,"変化速度",speed)
 	end
 	obj.draw()
---	obj.setoption("blend",0)
 
 if (map == 0) then
-	obj.copybuffer("obj","cache:original")
+	obj.copybuffer("obj","cache:TDoriginal")
 	obj.effect("ディスプレイスメントマップ","type",0,"name","*tempbuffer","元のサイズに合わせる",1,"param0",amount,"param1",amount,"ぼかし",comp,"calc",mode)
+	--[[
+		下の行をコメント解除すると重たいけど変形方向固定化問題が緩和？
+		特に変形方法が拡大変形の時の動作が改善
+	]]
+	--obj.effect("ディスプレイスメントマップ","type",0,"name","*tempbuffer","元のサイズに合わせる",1,"param0",amount,"param1",-amount,"ぼかし",comp,"calc",mode)
 	local clipAmount = amount
 	if (clip == 1 and obj.check0 and loop == 0) then
 		--debug_print("ext clip")
@@ -102,14 +207,14 @@ if (map == 0) then
 	end
 	if (fill == 1) then
 		--debug_print("start fill")
-		obj.copybuffer("cache:temp0","obj")
-		obj.copybuffer("cache:oritmp","tmp")
+		obj.copybuffer("cache:TDtemp0","obj")
+		obj.copybuffer("cache:TDoritmp","tmp")
 		obj.load("tempbuffer")
 		obj.effect("反転","輝度反転",1)
 		--obj.draw()
 		--obj.copybuffer("cache:temp1","obj")
 		obj.copybuffer("tmp","obj")
-		obj.copybuffer("obj","cache:original")
+		obj.copybuffer("obj","cache:TDoriginal")
 		obj.effect("ディスプレイスメントマップ","type",0,"name","*tempbuffer","元のサイズに合わせる",1,"param0",amount,"param1",amount,"ぼかし",comp,"calc",mode)
 		if (clip == 1 and obj.check0 and loop == 0) then
 			obj.effect("クリッピング","上",math.abs(clipAmount),"下",math.abs(clipAmount),"左",math.abs(clipAmount),"右",math.abs(clipAmount))
@@ -127,11 +232,10 @@ if (map == 0) then
 		end
 		obj.effect()
 		obj.draw()
-		obj.copybuffer("obj","cache:temp0")	
-		--obj.setoption("drawtarget","framebuffer")
+		obj.copybuffer("obj","cache:TDtemp0")	
 		obj.effect()
 		obj.draw()
-		obj.copybuffer("tmp","cache:oritmp")
+		obj.copybuffer("tmp","cache:TDoritmp")
 	end
 else
 	obj.load("tempbuffer")
